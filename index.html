@@ -16,7 +16,7 @@
     <div class="wrapper">
       <header>
         <h1>Live Arduino Plotter</h1>
-        <p>Arduino based plotter that can be controlled by drawing on an html canvas using serial communication</p>
+        <p><a href="http://arduino.cc">Arduino</a> based plotter that can be controlled by drawing on an <a href="http://en.wikipedia.org/wiki/Canvas_element">html canvas</a> using serial communication. See it in action on <a href="http://www.youtube.com/watch?v=Sn-WIluo1Us&feature=BFa&list=ULSC3hTZtnDt4">YouTube</a>. See also the similar <a href="http://roxen.github.com/polar-plotter/">Polar Plotter</a> project.</p>
 
         <p class="view"><a href="https://github.com/roxen/live-plotter">View the Project on GitHub <small>roxen/live-plotter</small></a></p>
 
@@ -28,38 +28,52 @@
         </ul>
       </header>
       <section>
-        <h3>Welcome to GitHub Pages.</h3>
+        <h3>The project</h3>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+        <p>This is an Arduino project that lets you draw live on paper with a homemade plotter using an html5 canvas.</p>
+        <p>It consists of the plotter controlled by an Arduino program. The program receives serial control data from a java program. This program is implemented as a web application and runs on a Jetty Web Server. The web application serves one web page with an html5 canvas on it. When drawing on the canvas, print data is sent from the browser to the server via a websocket. This data is then sent to the plotter which draws live. This uses serial communication over usb.</p>
+        <p>Multiple users can collaborate in the drawing, though only one user at a time may actually draw. The drawing history is stored on the server and a new user that hooks up gets the history replayed.</p>
+        <p>The live drawing is the main feature of this project but you can also hardcode drawing instructions into the Arduino program. For more details on these features, please the project documentation for the <a href="http://roxen.github.com/polar-plotter/">Polar Plotter</a>.</p>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+        <p>This is what the plotter looks like</p>
+        <p><img src="images/image1.jpg" alt="" /></p>
+
+        <p>You draw on a canvas like so:</p>
+        <p><img src="images/canvas.png" /></p>
+
+        <p>And here is how it works.</p>
+        <div class="video-container">
+          <iframe width="560" height="315" src="http://www.youtube.com/embed/Sn-WIluo1Us" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <p></p>
+
+        <h3>The gear</h3>
+        <p>The construction for this plotter is to a great extent the same as that of the <a href="http://roxen.github.com/polar-plotter/">Polar Plotter</a>. The Polar Plotter had to share most of its parts for this one to be built.</p>
+        <p>There is a new, smaller stepper motor controlling the y-axis action. It's a <a href="http://www.lawicel-shop.se/prod/_802172/_55653/SWE/EUR">Pololu Stepper Motor 35*26mm</a>.</p>
+
+
+        <h3>The code</h3>
+        <p>The code is divided into two parts.</p>
+        <h4>The webserver</h4>
+         <p>The webserver can be run without the plotter hooked up. Actually, serial output is disabled by default.</p>
+         <p>The webserver requires Java and <a href="http://maven.apache.org">Apache Maven</a>. You also need the RXTX Library set up to enable serial communication. See <a href="http://www.arduino.cc/playground/Interfacing/Java">http://www.arduino.cc/playground/Interfacing/Java</a> for instructions.</p>
+         <p>To run the webserver, first checkout or download the project. Then, </p>
+<pre><code>$ cd canvas-server
+$ mvn jetty:run
 </code></pre>
+        <p>Then point your browser to <a href="http://localhost:8080/canvas/">http://localhost:8080/canvas/</a> and draw something. Open a second window to see history replayed. You can now draw from both windows, but one at a time. A busy indicator tells when someone is drawing. Touch devices are also supported. I've used iPhone and iPad.</p>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+        <h4>The Arduino plotter controller</h4>
+        <p>The Arduino program obviously runs on the Arduino board. I use a Arduino UNO Rev3. Keep the usb cable hooked up to the computer as it is used for the serial communication.</p>
+        <p>You might need to edit the <code>PORT_NAMES</code> in the <code>SerialCommunicator</code> java class to match your platform. I'm on a Mac.</p>
 
-<h3>Designer Templates</h3>
-
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/roxen">roxen</a></p>
         <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
       </footer>
     </div>
+
     <script src="javascripts/scale.fix.js"></script>
               <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
