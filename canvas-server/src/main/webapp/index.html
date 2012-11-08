@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Live Plotter Canvas</title>
+<style type="text/css">
+html {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
+}
+
+#busyindicator {
+  color: #f00;
+  display: none;
+}
+
+#clear {
+  margin-right: 8px;
+}
+
+#canvas {
+  display: block;
+  margin-bottom: 8px;
+  width: 400px;
+  height: 400px;
+  background-color: #eee;
+  border: 1px solid #ddd;
+  cursor: crosshair;
+}
+</style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <button id="clear">Clear canvas</button>
+  <span id="busyindicator">Busy</span>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+  <script>
+            var MOVE_TO = 0, LINE_TO = 1, BEGIN_AT = 2, CLEAR = 3, DONE = 4;
+            var canvas = $('#canvas');
+            var canvasElem = canvas.get(0);
+            var context = canvasElem.getContext('2d');
+            canvasElem.width = canvas.width();
+            canvasElem.height = canvas.height();
+            var drawing = false;
+            var wsHref = location.href.replace('http', 'ws') + 'socket';
+
+            var getPoint = function(e) {
+                var offset = canvas.offset();
+                var x = e.pageX - offset.left;
+                var y = e.pageY - offset.top;
+                if (event.targetTouches) {
+                    x = event.targetTouches[0].pageX - offset.left;
+                    y = event.targetTouches[0].pageY - offset.top;
+                }
+                return {
+                    "x" : x,
+                    "y" : y
+                };
+            }
+
+            var busy = function(e) {
+                $('#busyindicator').show();
+            }
+
+            var idle = function(e) {
+                $('#busyindicator').hide();
+            }
+
+            var ws = new WebSocket(wsHref);
+            ws.onmessage = function(e) {
+                var message = JSON.parse(e.data);
+                var data = message.data;
+                switch (message.type) {
+                case LINE_TO:
+                    busy();
+                    context.lineTo(data.x, data.y);
+                    context.stroke();
+                    break;
+                case BEGIN_AT:
+                    busy();
+                    context.beginPath();
+                    context.moveTo(data.x, data.y);
+                    break;
+                case CLEAR:
+                    context.clearRect(0, 0, canvas.width(), canvas.height());
+                    break;
+                case DONE:
+                    idle();
+                    break;
+                }
+            };
+
+            var send = function(type, data) {
+                ws.send(JSON.stringify({
+                    'type' : type,
+                    'data' : data
+                }));
+            };
+
+            canvas.bind('mousedown touchstart', function(e) {
+                drawing = true;
+                send(BEGIN_AT, getPoint(e));
+                e.preventDefault();
+                return false;
+            });
+            canvas.bind('mouseup touchend', function(e) {
+                drawing = false;
+                send(DONE);
+                e.preventDefault();
+                return false;
+            });
+            canvas.bind('mousemove touchmove', function(e) {
+                if (drawing) {
+                    send(LINE_TO, getPoint(e));
+                } else {
+                    send(MOVE_TO, getPoint(e));
+                }
+                e.preventDefault();
+                return false;
+            });
+            $('#clear').click(function(e) {
+                send(CLEAR);
+            });
+        </script>
+</body>
+</html>
