@@ -16,7 +16,7 @@
     <div class="wrapper">
       <header>
         <h1>Live Arduino Plotter</h1>
-        <p><a href="http://arduino.cc">Arduino</a> based plotter that can be controlled by drawing on an <a href="http://en.wikipedia.org/wiki/Canvas_element">html canvas</a> using serial communication. See it in action on <a href="http://www.youtube.com/watch?v=Sn-WIluo1Us&feature=BFa&list=ULSC3hTZtnDt4">YouTube</a>. See also the similar <a href="http://roxen.github.com/polar-plotter/">Polar Plotter</a> project.</p>
+        <p><a href="http://arduino.cc">Arduino</a> based plotter that can be controlled by drawing on an <a href="http://www.w3schools.com/html/html5_canvas.asp">html canvas</a> using <a href="http://www.websocket.org">websocket</a>s and <a href="http://www.arduino.cc/playground/Interfacing/Java">serial communication over usb</a>. See it in action on <a href="http://www.youtube.com/watch?v=Sn-WIluo1Us&feature=BFa&list=ULSC3hTZtnDt4">YouTube</a>. See also the similar <a href="http://roxen.github.com/polar-plotter/">Polar Plotter</a> project.</p>
 
         <p class="view"><a href="https://github.com/roxen/live-plotter">View the Project on GitHub <small>roxen/live-plotter</small></a></p>
 
@@ -30,42 +30,87 @@
       <section>
         <h3>The project</h3>
 
-        <p>This is an Arduino project that lets you draw live on paper with a homemade plotter using an html5 canvas.</p>
-        <p>It consists of the plotter controlled by an Arduino program. The program receives serial control data from a java program. This program is implemented as a web application and runs on a Jetty Web Server. The web application serves one web page with an html5 canvas on it. When drawing on the canvas, print data is sent from the browser to the server via a websocket. This data is then sent to the plotter which draws live. This uses serial communication over usb.</p>
-        <p>Multiple users can collaborate in the drawing, though only one user at a time may actually draw. The drawing history is stored on the server and a new user that hooks up gets the history replayed.</p>
-        <p>The live drawing is the main feature of this project but you can also hardcode drawing instructions into the Arduino program. For more details on these features, please the project documentation for the <a href="http://roxen.github.com/polar-plotter/">Polar Plotter</a>.</p>
+        <p>This is an Arduino/Java project that lets you draw live on paper from an html5 canvas. This is a high level schematic:</p>
+        <p style="line-height: 180%">
+          <span class="box">Web Browser</span> &rarr; <span class="connect">WebSocket</span> &rarr; <span class="box">Java Web Server</span> &rarr; <span class="connect">Serial over usb (9600bps)</span> &rarr; <span class="box">Arduino board</span> &rarr; <span class="box">Plotter</span>
+        </p>
+        <p>When you draw on the canvas in the browser, draw commands are sent to the server via a websocket. These commands include for example <code>moveTo(x, y)</code> and <code>lineTo(x, y)</code>. The server then sends these commands to the Arduino board via usb. The Arduino board runs a program that handles the input and controls the plotter accordingly.</p>
+
+        <p>Multiple users can collaborate in the drawing, though only one user at a time may draw.</p>
+        <p>The drawing commands are stored on the server so that new users that take on where others left off.</p>
 
         <p>This is what the plotter looks like</p>
-        <p><img src="images/image1.jpg" alt="" /></p>
+        <p><img src="images/image7.jpg" alt="" /></p>
 
-        <p>You draw on a canvas like so:</p>
+        <p>You draw on the canvas like so</p>
         <p><img src="images/canvas.png" /></p>
 
-        <p>And here is how it works.</p>
+        <p>And here is the plotter in action</p>
         <div class="video-container">
           <iframe width="560" height="315" src="http://www.youtube.com/embed/Sn-WIluo1Us" frameborder="0" allowfullscreen></iframe>
         </div>
         <p></p>
 
-        <h3>The gear</h3>
-        <p>The construction for this plotter is to a great extent the same as that of the <a href="http://roxen.github.com/polar-plotter/">Polar Plotter</a>. The Polar Plotter had to share most of its parts for this one to be built.</p>
-        <p>There is a new, smaller stepper motor controlling the y-axis action. It's a <a href="http://www.lawicel-shop.se/prod/_802172/_55653/SWE/EUR">Pololu Stepper Motor 35*26mm</a>.</p>
+        <h3>The hardware</h3>
+        <p>The parts for this plotter are largely the same as that of my <a href="http://roxen.github.com/polar-plotter/">Polar Plotter</a>. See that project for details.</p>
+        <p>The construction is entirely made up of <a href="http://www.makerbeam.eu">Maker Beam</a>s. For this plotter I used pretty much their starter kit plus two sets of bearings and one set of vinyl caps.</p>
+        <p>A big stepper motor controls x-axis movement. A smaller stepper motor is controlling the y-axis action. It's a <a href="http://www.lawicel-shop.se/prod/_802172/_55653/SWE/EUR">Pololu Stepper Motor 35*26mm</a>. A RobotBase servo controls the pen.</p>
 
+        <p>This is a closeup of the sleigh moving on the x-axis arm, holding the y-axis arm. The sleigh is guided by eight bearings.</p>
+        <p><img src="images/image4.jpg" alt="" /></p>
+
+        <p>This is the sleigh from underneath.</p>
+        <p><img src="images/image5.jpg" alt="" /></p>
+
+        <p>The servo holding the pen. The arm construction makes pen tip movement pretty much vertical when touching the paper. If it is not, you'll get short lines when lowering the pen. The two screws on the vertical beam parallel to the pen allow for simple pen switching.</p>
+        <p><img src="images/image3.jpg" alt="" /></p>
+
+        <p>The feet have adjustable height to be able to hold the pen on the same height over the whole drawing area.</p>
+        <p><img src="images/image2.jpg" alt="" /></p>
+
+        <p>The end of the y-axis runs on a bearing as a wheel. This too has adjustable height.</p>
+        <p><img src="images/image6.jpg" alt="" /></p>
+
+        <h3>The design</h3>
+        <p>While being a traditional x/y plotter design, the plotter has some untraditional features.
+          <ul>
+            <li>Frameless - Most plotters tend to have a complete frame. This makes them stable but also a bit bulky. This plotter has a moving arm which for the purpose is sturdy enough. And instead of putting a paper on the plotter, you put this plotter onto the paper.</li>
+            <li>Gear racks - Many designs use timing belts. I like gear racks. This plotter uses two from <a href="http://www.conrad.com/Gear-rack.htm?websale7=conrad-int&pi=237396&ireusocl=1">Conrad</a>.</li>
+          </ul>
+        </p>
+
+        <h3>Resolution</h3>
+        <p>The plotter has a physical <code>0.02mm</code> resolution. However, we use a <code>400x400px</code> canvas and want to fit the coordinates in bytes for simplicity. Therefore, resolution is drastically reduced and output is pixellated, as can be seen in the video.</p>
 
         <h3>The code</h3>
-        <p>The code is divided into two parts.</p>
+        <p>The code is divided into two parts: The web server and the plotter controller.</p>
         <h4>The webserver</h4>
-         <p>The webserver can be run without the plotter hooked up. Actually, serial output is disabled by default.</p>
-         <p>The webserver requires Java and <a href="http://maven.apache.org">Apache Maven</a>. You also need the RXTX Library set up to enable serial communication. See <a href="http://www.arduino.cc/playground/Interfacing/Java">http://www.arduino.cc/playground/Interfacing/Java</a> for instructions.</p>
-         <p>To run the webserver, first checkout or download the project. Then, </p>
+        <p>The webserver consists of a websocket servlet running in <a href="http://jetty.codehaus.org/jetty/">Jetty</a>. It can be run without the plotter hooked up. Actually, serial output is disabled by default.</p>
+         <p>The server requires Java and <a href="http://maven.apache.org">Apache Maven</a> to be installed. You also need the RXTX Library for serial communication. See <a href="http://www.arduino.cc/playground/Interfacing/Java">http://www.arduino.cc/playground/Interfacing/Java</a> for installation instructions.</p>
+         <p>To run the webserver, first checkout or download the project. Then do</p>
 <pre><code>$ cd canvas-server
 $ mvn jetty:run
 </code></pre>
         <p>Then point your browser to <a href="http://localhost:8080/canvas/">http://localhost:8080/canvas/</a> and draw something. Open a second window to see history replayed. You can now draw from both windows, but one at a time. A busy indicator tells when someone is drawing. Touch devices are also supported. I've used iPhone and iPad.</p>
 
-        <h4>The Arduino plotter controller</h4>
-        <p>The Arduino program obviously runs on the Arduino board. I use a Arduino UNO Rev3. Keep the usb cable hooked up to the computer as it is used for the serial communication.</p>
-        <p>You might need to edit the <code>PORT_NAMES</code> in the <code>SerialCommunicator</code> java class to match your platform. I'm on a Mac.</p>
+        <h5>Enabling serial output</h5>
+        <p>To log to serial out, set <code>ENABLE_SERIAL</code> in <code>SerialLoggingWebSocketServlet</code> to <code>true</code>. You might need to edit the <code>PORT_NAMES</code> in the <code>SerialCommunicator</code> java class to match your platform. I'm on a Mac.</p>
+
+        <h4>The plotter controller</h4>
+        <p>The plotter controller is an Arduino program. I have it running on an Arduino UNO Rev3 board.</p>
+        <p>The program reads commands from the server via the serial input. Each command is three bytes: <code>command|x|y</code>, for example <code>lineTo|80|120</code>.</p>
+        <p>The read section in the) program looks like this:
+<pre><code>if (Serial.available() > 3) {
+  byte type = Serial.read();
+  byte x = Serial.read();
+  byte y = Serial.read();
+...
+</code></pre>
+        </p>
+
+        <h4>Other features</h4>
+        <p>The live drawing is the main feature of this project but you can also hardcode drawing instructions into the Arduino program to for example draw draw text with a certain font. For more details on these features, please the project documentation for the <a href="http://roxen.github.com/polar-plotter/">Polar Plotter</a>.</p>
+
 
       </section>
       <footer>
